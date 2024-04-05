@@ -12,8 +12,7 @@ function Sorting(){
         for(let i = 0 ;i< arrSize;  i++){
             array.push({id: i , value: randomInt(10 , 500)});
         }
-        setArr(array);
-       
+                setArr(array);
     }
 
     // const mergeSort = async (array) => {
@@ -128,7 +127,6 @@ function Sorting(){
         await mergeSort(arr);
         
     }
-
     
     
     return(
@@ -145,11 +143,9 @@ function Sorting(){
         <div className="arrContainer">{arr.map((item , idx)=> 
             (<div className = "arrElement" key= {idx} style={{height : `${item.value}px`, width: `${Math.floor(400/arrSize)}px` , transition: 'height 0.5s' , left: `${50+ item.id*(Math.floor(400/arrSize)+1)}px`}}></div>)
             )}
-        
         </div>
         </div>
         </>
-        
     );
 }
 
