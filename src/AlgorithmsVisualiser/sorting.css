@@ -1,36 +1,165 @@
 
-.arrContainer{
-    position: relative;
-    float: right;
-    margin: auto;
-    background-color: rgb(0, 0, 0);
-    width: 70%;
-    height: 100vh;
+
+
+body, html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
-.arrElement{
+
+button{
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    display: inline-block;
+    padding: 5px 20px;
+    margin: 5px;
+    background-color: #007bff;
+    color: #fff;
+    text-decoration: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+
+}
+
+button:hover{
+    background-color: #0026ff;
+}
+
+#sortType{
+    margin-bottom: 10px;
+
+}
+.Header{
+    position: fixed;
+    top: 0;
+    height: 30px;
+    background-color: aliceblue;
+    z-index: 1000;
+    width: 100%;
+}
+
+.container {
+    display: flex;
+    height: calc(100vh);
+    
+}
+
+.sortingInterface {
+    color: white;
+    background-color: #333;
+    flex: 0 0 30%; 
+}
+
+.arrContainer {
+    background-color: rgb(0, 0, 0);
+    flex: 0 0 70%; 
+    position: relative; 
+}
+
+.arrElement {
     display: inline-block;
     margin: 1px;
     background-color: rgb(153, 0, 255);
-    bottom: 30px;
-    position: absolute;
-    
+    position: absolute; 
+    bottom: 30px; 
+    border-style:none none solid none;
+    border-color: rgb(168, 168, 168);
+    border-width: 2px;
+    border-radius: 2px;
 }
+
+
 
 .slider{
     margin-top: 20px;
-}
-.sortingInterface{
+    margin-bottom: 20px;
     
-    float:left;
-    width: 30%;
-    background-color: rgb(198, 112, 255);
-    height: 100vh;
+    
 }
 
-button{
-    margin: 2px;
-    padding: 5px;
+.DataCard{
+    position:relative;
+    top: 10px;
+    left: 10px;
+
+}
+
+/* INFOCARD */
+
+.InfoMain{
+    position: absolute;
+    background-color: #333;
+    top: 10px;
+    right: 10px;
+    width: 25%;
+    height: 50%;
+    border-radius: 5px;
+    box-shadow:-1px 1px 1px 1px  rgba(255, 255, 255, 1);
+    
+}
+
+.InfoColor{
+    
+    margin-left: 10px;
+    padding: 1px;
+    width: 10%;
+    height: 5%;
+    border-radius: 4px;
+}
+
+#ic1{
+    
+    margin-top: 10px;
     display: block;
-    background-color: aquamarine;
+    background-color: rgb(255, 255, 255);
+}
+
+#ic2{
+    
+    display: block;
+    background-color: rgb(153, 0, 255);
+}
+
+#ic3{
+    
+    display: block;
+    background-color: rgb(13, 255, 0);
+}
+
+#ic4{
+    
+    margin-top: 10px;
+    display: block;
+    background-color: rgb(255, 0, 0);
+}
+
+#ic5{
+    
+    display: block;
+    background-color: rgb(255, 255, 255);
+}
+
+#ic6{
+    
+    display: block;
+    background-color: rgb(153, 0, 255);
+}
+#ic7{
+    
+    display: block;
+    background-color: rgb(13, 255, 0);
+}
+
+
+
+
+
+.InfoLabel{
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    margin-top: 6px;
+    margin-left: 10px;
+    display: block;
+    font-size:small ;
+    color: white;
 }
