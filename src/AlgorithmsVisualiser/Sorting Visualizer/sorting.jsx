@@ -67,7 +67,7 @@ function Sorting(){
         let label_array = [];
         
 
-        for(let i=2 ; i<=700; i+=10){
+        for(let i=10 ; i<=400; i+=10){
             label_array.push(i);
 
             for( let j= 0 ; j< i ; j+=1){
@@ -410,19 +410,24 @@ function Sorting(){
 
     const sortArr = async () => {
         let TimeElapsed = 0 ;
+        const TempArr = arr.map(item => item.value);
+        console.log(TempArr);
         setComparisions(0);
         setTimeTaken(0);
         if (sortType === "s1"){
             await mergeSort(arr);
-            TimeElapsed = measureTimeTaken(mergeSort2 , arr);
+
+            
+            TimeElapsed = measureTimeTaken(mergeSort2 , TempArr);
             setTimeTaken(TimeElapsed);
-            console.log(TimeTaken);
+            
         }
         else if(sortType === "s2"){
             await quickSort(arr, 0 , arr.length -1);
-            TimeElapsed = measureTimeTaken(quickSort2 , arr);
+
+            
+            TimeElapsed = measureTimeTaken(quickSort2 , TempArr);
             setTimeTaken(TimeElapsed);
-            console.log(TimeTaken);
             
         }
         else if(sortType === "s3"){
@@ -481,7 +486,6 @@ function Sorting(){
                 <div className="InfoColor" id= "ic5" ></div> <p className="InfoLabel">Selected Pair</p>
                 <div className="InfoColor" id= "ic6" ></div> <p className="InfoLabel">Not Selected</p>
                 <div className="InfoColor" id= "ic7" ></div> <p className="InfoLabel">After Comparision</p>
-
             </div>
         ); 
     }
@@ -496,7 +500,7 @@ function Sorting(){
         <div className="container">
         
         <div className="sortingInterface">
-        <div className="slider"><label htmlFor= "arrSize">ARRAY SIZE</label><input type="range" min="16" max="180" id="arrSize" onChange={resetArray}></input></div>
+        <div className="slider"><label htmlFor= "arrSize">ARRAY SIZE</label><input type="range" min="16" max="180" id="arrSize" onChange={resetArray} onMouseLeave={resetArray}></input></div>
         <div className="slider"><label htmlFor= "arrSize">ANIMATION SPEED</label><input type="range" min="10" max="100" id="speed" onChange={changeSpeed}></input></div>
             <label for="cars">Choose a Sorting Algorithm: </label>
             <select name="Sorting Type" id="sortType" onChange={changeSortType}>

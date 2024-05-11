@@ -1,4 +1,4 @@
-import Sorting from "./AlgorithmsVisualiser/sorting"
+import Sorting from "./AlgorithmsVisualiser/Sorting Visualizer/sorting";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 import Navigation from "./AlgorithmsVisualiser/Navigation";
