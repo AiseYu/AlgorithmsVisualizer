@@ -58,7 +58,6 @@ function Sorting(){
     const sortSimulate = () =>{
         let array1 = [];
         let array2 = [];
-        let array3 = [];
 
         let TimeTaken = 0;
         let mergeSortData = [];
@@ -72,22 +71,30 @@ function Sorting(){
 
             for( let j= 0 ; j< i ; j+=1){
                 array1.push(randomInt(10, 500));
-                array2.push(randomInt(10, 500));
-                array3.push(randomInt(10, 500));
             }
 
+            
+            array2 = array1;
+            if(graphToggle.mergesort){
             TimeTaken = measureTimeTaken(mergeSort2, array1);
             mergeSortData = [...mergeSortData , TimeTaken];
+            }
             
-
-            TimeTaken = measureTimeTaken(quickSort2, array2);
-            quickSortData = [...quickSortData ,TimeTaken];
+            if(graphToggle.quicksort){
+                array1 = array2;
+                TimeTaken = measureTimeTaken(quickSort2, array2);
+                quickSortData = [...quickSortData ,TimeTaken];
+            }
             
-            TimeTaken = measureTimeTaken(bubbleSort2, array3);
-            bubbleSortData = [...bubbleSortData , TimeTaken];
+            
+            if(graphToggle.bubblesort){
+                TimeTaken = measureTimeTaken(bubbleSort2, array1);
+                bubbleSortData = [...bubbleSortData , TimeTaken];
+            }
+            
             
         }
-        const newData = {
+        setData({
             labels: label_array,
             datasets: [
                 {
@@ -112,17 +119,13 @@ function Sorting(){
                     tension: 0.1
                 },
             ],
-        };
+        });
 
-        return newData;
         
     }
 
 
-    const updateChart = () => {
-        const x = sortSimulate();
-        setData(x);
-    }
+    
 
     
 
@@ -217,7 +220,6 @@ function Sorting(){
         let swapped;
         let arrayBars = document.getElementsByClassName('arrElement');
         let block;
-        let fixed;
 
         do {
             swapped = false;
@@ -438,11 +440,11 @@ function Sorting(){
 
 
 
-    
+    //USE EFFECTS
 
     useEffect(() => {
         changeSortType();
-    }, []);
+    }, [data]);
 
 
 
@@ -495,13 +497,29 @@ function Sorting(){
         setSpeed(x);
     }
 
+    const [graphToggle, setGraphToggle] = useState({
+        mergesort: true,
+        quicksort: true,
+        bubblesort: true,
+        
+      });
+    
+      // Function to handle checkbox change
+      const handleGraphToggle = (event) => {
+        const { name, checked } = event.target;
+        setGraphToggle({
+          ...graphToggle,
+          [name]: checked,
+        });
+      };
+
     return(
         <>
         <div className="container">
         
         <div className="sortingInterface">
-        <div className="slider"><label htmlFor= "arrSize">ARRAY SIZE</label><input type="range" min="16" max="180" id="arrSize" onChange={resetArray} onMouseLeave={resetArray}></input></div>
-        <div className="slider"><label htmlFor= "arrSize">ANIMATION SPEED</label><input type="range" min="10" max="100" id="speed" onChange={changeSpeed}></input></div>
+        <div className="slider"><label htmlFor= "arrSize">ARRAY SIZE</label><input type="range" min="16" max="180" id="arrSize" onChange={resetArray} onMouseUp={resetArray}></input></div>
+        <div className="slider"><label htmlFor= "arrSize">ANIMATION SPEED</label><input type="range" min="10" max="200" id="speed" onChange={changeSpeed}></input></div>
             <label for="cars">Choose a Sorting Algorithm: </label>
             <select name="Sorting Type" id="sortType" onChange={changeSortType}>
                 <option value="s1">Merge Sort</option>
@@ -512,16 +530,49 @@ function Sorting(){
 
             <button onClick={resetArray}>RESET ARRAY</button>
             <button onClick={sortArr}>START SORT</button>
-            <button onClick={updateChart}>UPDATE CHART</button>
-            <button onClick={toggleChart}>TOGGLE CHART</button>
-            
-
             
             
             <div className="DataCard">
                 <h4>Comparisions: {comparisions}</h4>
                 <h4>Number of Elements: {arrSize}</h4>
-                <h4>Time Elapsed(micro seconds): {TimeTaken*1000}</h4>
+                <h4>Time Elapsed(milli seconds): {TimeTaken}</h4>
+            </div>
+
+            <button onClick={toggleChart}>TOGGLE CHART</button>
+            <button onClick={sortSimulate}>UPDATE CHART</button>
+            
+
+            <div>
+            <h4>Set the algorithms to be displayed on graph: </h4>
+            <label>
+                <input
+                type="checkbox"
+                name="mergesort"
+                checked={graphToggle.mergesort}
+                onChange={handleGraphToggle}
+                />
+                Merge Sort
+            </label>
+            <br />
+            <label>
+                <input
+                type="checkbox"
+                name="quicksort"
+                checked={graphToggle.quicksort}
+                onChange={handleGraphToggle}
+                />
+                Quick Sort
+            </label>
+            <br />
+            <label>
+                <input
+                type="checkbox"
+                name="bubblesort"
+                checked={graphToggle.bubblesort} 
+                onChange={handleGraphToggle}/>
+                Bubble Sort
+            </label>
+            
             </div>
             
             
@@ -582,7 +633,9 @@ function mergeSort2(arr) {
     return merge2(mergeSort2(left), mergeSort2(right));
 }
 
-function merge2(left, right) {
+
+function merge2(left, right){
+    
     let result = [];
     let leftIndex = 0;
     let rightIndex = 0;
