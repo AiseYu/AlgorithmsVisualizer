@@ -170,7 +170,7 @@ function spanningtree(){
 
 
   useEffect(() => {
-    const newset = primAlgorithm(graphData);
+    // const newset = primAlgorithm(graphData);
     
   }, []);
 
