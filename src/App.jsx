@@ -6,6 +6,9 @@ import Navigation from "./AlgorithmsVisualiser/Navigation";
 import Home from "./AlgorithmsVisualiser/Home";
 import Sorting from "./AlgorithmsVisualiser/Sorting Visualizer/sorting";
 import spanningtree from "./AlgorithmsVisualiser/Spanning Tree Visualizer/spanningtree";
+import pathfinding from "./AlgorithmsVisualiser/Path Finding Visualizer/pathfinding";
+
+
 
 function App() {
   return (
@@ -17,6 +20,7 @@ function App() {
       <Route exact path="/" Component={Home} />
       <Route path="/sorting" Component={Sorting} />
       <Route path="/spanningtree" Component={spanningtree} />
+      <Route path="/pathfinding" Component={pathfinding} />
       </Routes>
       </div>
       

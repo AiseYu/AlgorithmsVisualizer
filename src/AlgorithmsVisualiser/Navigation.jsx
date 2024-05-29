@@ -9,7 +9,8 @@ function Navigation() {
         </header>
         <Link to="/" className='button'>Home</Link>
         <Link to="/sorting" className='button'>SortingVisualiser</Link>
-        <Link to="/spanningtree" className='button'>SpanningTreeVisualiser</Link>
+        <Link to="/spanningtree" className='button'>SpanningTreeVisualizer</Link>
+        <Link to="/pathfinding" className='button'>PathFindingVisualizer</Link>
       
     </div>
   );

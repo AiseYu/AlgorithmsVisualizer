@@ -519,8 +519,8 @@ function Sorting(){
         
         <div className="sortingInterface">
         <div className="slider"><label htmlFor= "arrSize">ARRAY SIZE</label><input type="range" min="16" max="180" id="arrSize" onChange={resetArray} onMouseUp={resetArray}></input></div>
-        <div className="slider"><label htmlFor= "arrSize">ANIMATION SPEED</label><input type="range" min="10" max="200" id="speed" onChange={changeSpeed}></input></div>
-            <label for="cars">Choose a Sorting Algorithm: </label>
+        <div className="slider"><label htmlFor= "speed">ANIMATION SPEED</label><input type="range" min="10" max="200" id="speed" onChange={changeSpeed}></input></div>
+            <label for="sortType">Choose a Sorting Algorithm: </label>
             <select name="Sorting Type" id="sortType" onChange={changeSortType}>
                 <option value="s1">Merge Sort</option>
                 <option value="s2">Quick Sort</option>

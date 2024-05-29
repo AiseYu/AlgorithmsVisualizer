@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
-import './spanningtree.css'
+import './pathfinding.css'
 const Graph = ({ data, graphStates , onNodeClick}) => {
   const svgRef = useRef();
   const simulationRef = useRef();

@@ -1,12 +1,12 @@
 import React, {useState , useEffect} from "react";
-import './spanningtree.css'
+import './pathfinding.css'
 import { MinHeap } from 'mnemonist';
 
 import Graph from "./graph";
-import { index } from "d3";
 
 
-function spanningtree(){
+
+function pathfinding(){
     
   const [graphStates , setGraphStates] = useState({
     showWeights: true, 
@@ -394,4 +394,4 @@ function spanningtree(){
   );
 }
 
-export default spanningtree;
+export default pathfinding;
