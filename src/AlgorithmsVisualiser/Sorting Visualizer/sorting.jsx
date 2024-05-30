@@ -446,6 +446,8 @@ function Sorting(){
         changeSortType();
     }, [data]);
 
+    
+
 
 
     const [isChartOpen, setIsChartOpen] = useState(true);

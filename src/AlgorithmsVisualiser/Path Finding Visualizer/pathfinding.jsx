@@ -12,7 +12,7 @@ function pathfinding(){
     showWeights: true, 
     addingNodes: false , 
     removingNodes: false , 
-    algorithm: 'kruskal' ,
+    algorithm: 'bfs' ,
     visualize: false, 
     currentStep: 0,
     nodeSelected: false,
@@ -58,147 +58,134 @@ function pathfinding(){
   
 
   //main algorithms
-
-  const kruskalAlgorithm = (data) => {
+  const dfsAlgorithm = (data, source, destination) => {
     const nodes = data.nodes.map(node => ({ id: node.id }));
     const links = data.links.map(link => ({ source: link.source.id, target: link.target.id, weight: link.weight }));
-    const mstLinks = [];
-    const parent = {};
-    const rank = {};
     const steps = [];
-
-    const find = (node) => {
-      if (parent[node] !== node) {
-        parent[node] = find(parent[node]);
-      }
-      return parent[node];
-    };
-
-    const union = (node1, node2) => {
-      const root1 = find(node1);
-      const root2 = find(node2);
-      if (root1 !== root2) {
-        if (rank[root1] > rank[root2]) {
-          parent[root2] = root1;
-        } else if (rank[root1] < rank[root2]) {
-          parent[root1] = root2;
-        } else {
-          parent[root2] = root1;
-          rank[root1]++;
-        }
-      }
-    };
-
-    
-    nodes.forEach(node => {
-      parent[node.id] = node.id;
-      rank[node.id] = 0;
-    });
-
-    
-    const heap = new MinHeap((a, b) => a.weight - b.weight);
-    for (let link of links){
-      heap.push(link);
-    }
-    console.log(heap)
-
-    
-    while (mstLinks.length < nodes.length - 1 && heap.size > 0) {
-      const minEdge = heap.pop();
-      const { source, target } = minEdge;
-      if (find(source) !== find(target)) {
-        union(source, target);
-        mstLinks.push(minEdge);
+    const visited = new Set();
+    const stack = [source];
+  
+    while (stack.length > 0) {
+      const currentNode = stack.pop();
+  
+      if (!visited.has(currentNode)) {
+        visited.add(currentNode);
+  
         const step = {
           nodes,
           links: links.map(link => ({
             ...link,
-            inMST: mstLinks.includes(link),
-            considered: (link === minEdge),
-          }))
+            visited: visited.has(link.source) && visited.has(link.target),
+            considered: link.source === currentNode || link.target === currentNode,
+          })),
         };
         steps.push(step);
-      }
-      else{
-        const step = {
-          nodes,
-          links: links.map(link => ({
-            ...link,
-            inMST: mstLinks.includes(link),
-            considered: link === minEdge,
-          }))
-        };
-        steps.push(step);
-        
+  
+        if (currentNode === destination) break;
+  
+        const neighbors = links
+          .filter(link => link.source === currentNode || link.target === currentNode)
+          .map(link => (link.source === currentNode ? link.target : link.source))
+          .filter(neighbor => !visited.has(neighbor));
+  
+        stack.push(...neighbors);
       }
     }
-    const step = {
-      nodes,
-      links: links.map(link => ({
-        ...link,
-        inMST: mstLinks.includes(link),
-        considered: false,
-      }))
-    };
-    steps.push(step);
-    
     return steps;
   };
-
-  const primAlgorithm = (data) => {
-    
-    const nodes = data.nodes.map(node=> ({id: node.id}));
-    const links = data.links.map(link => ({source: link.source.id, target: link.target.id , weight: link.weight}));
-    const mstLinks = [];
-    const visited = new Set();
+  
+  const bfsAlgorithm = (data, source, destination) => {
+    const nodes = data.nodes.map(node => ({ id: node.id }));
+    const links = data.links.map(link => ({ source: link.source.id, target: link.target.id, weight: link.weight }));
     const steps = [];
-    
-    visited.add(nodes[0].id);
-    while (visited.size < nodes.length) {
-      let considering = [];
-      let minEdge = null;
-      for (let link of links) {
-        if ((visited.has(link.source) && !visited.has(link.target)) ||
-            (visited.has(link.target) && !visited.has(link.source))) {
-          considering.push(link);
-          if (!minEdge || link.weight < minEdge.weight) {
-            minEdge = link;
+    const visited = new Set();
+    const queue = [source];
+  
+    while (queue.length > 0) {
+      const currentNode = queue.shift();
+  
+      if (!visited.has(currentNode)) {
+        visited.add(currentNode);
+  
+        const step = {
+          nodes,
+          links: links.map(link => ({
+            ...link,
+            visited: visited.has(link.source) && visited.has(link.target),
+            considered: link.source === currentNode || link.target === currentNode,
+          })),
+        };
+        steps.push(step);
+  
+        if (currentNode === destination) break;
+  
+        const neighbors = links
+          .filter(link => link.source === currentNode || link.target === currentNode)
+          .map(link => (link.source === currentNode ? link.target : link.source))
+          .filter(neighbor => !visited.has(neighbor));
+  
+        queue.push(...neighbors);
+      }
+    }
+    return steps;
+  };
+  
+  const dijkstraAlgorithm = (data, source, destination) => {
+    const nodes = data.nodes.map(node => ({ id: node.id }));
+    const links = data.links.map(link => ({ source: link.source.id, target: link.target.id, weight: link.weight }));
+    const steps = [];
+    const distances = {};
+    const previous = {};
+    const visited = new Set();
+    const queue = new MinHeap((a, b) => a.distance - b.distance);
+  
+    nodes.forEach(node => {
+      distances[node.id] = Infinity;
+      previous[node.id] = null;
+    });
+    distances[source] = 0;
+  
+    queue.push({ id: source, distance: 0 });
+  
+    while (queue.size > 0) {
+      const { id: currentNode } = queue.pop();
+      visited.add(currentNode);
+  
+      const step = {
+        nodes,
+        links: links.map(link => ({
+          ...link,
+          visited: visited.has(link.source) && visited.has(link.target),
+          considered: link.source === currentNode || link.target === currentNode,
+          distance: distances[link.source] + link.weight,
+        })),
+      };
+      steps.push(step);
+  
+      if (currentNode === destination) break;
+  
+      const neighbors = links
+        .filter(link => link.source === currentNode || link.target === currentNode)
+        .map(link => ({
+          ...link,
+          neighbor: link.source === currentNode ? link.target : link.source,
+        }));
+  
+      for (const { neighbor, weight } of neighbors) {
+        if (!visited.has(neighbor)) {
+          const newDistance = distances[currentNode] + weight;
+          if (newDistance < distances[neighbor]) {
+            distances[neighbor] = newDistance;
+            previous[neighbor] = currentNode;
+            queue.push({ id: neighbor, distance: newDistance });
           }
         }
       }
-      if (minEdge) {
-        mstLinks.push(minEdge);
-        visited.add(minEdge.source);
-        visited.add(minEdge.target);
-        const step = {
-          nodes,
-          links: links.map(link => ({
-            ...link,
-            inMST: mstLinks.includes(link),
-            considered: considering.includes(link),
-            
-          }))
-        };
-        const step2 = {
-          nodes,
-          links: links.map(link => ({
-            ...link,
-            inMST: mstLinks.includes(link),
-            considered: false,
-            
-          }))
-        };
-        steps.push(step);
-        steps.push(step2);
-      }else {
-
-        console.log("broke");
-        break;
-      }
     }
     return steps;
   };
 
+ 
   const nextStep = () => {
     setGraphStates(prev => ({...prev , currentStep: Math.min(steps.length-1 , prev.currentStep +1)}));
   };
@@ -255,22 +242,37 @@ function pathfinding(){
   };
 
 
-  const removeNode = (d) => {
-  
+  const removeNode = (node1 , node2) => {
+    const edgeExists = graphData.links.some(link => 
+      (link.source.id === node1.id && link.target.id === node2.id) ||
+      (link.source.id === node2.id && link.target.id === node1.id)
+    );
+    console.log(edgeExists);
     
-    const removedNode = d;
-    const newLinks = graphData.links.filter(link => link.source.id !== removedNode.id && link.target.id !== removedNode.id);
+    if(node1.id === node2.id){
+      const newLinks = graphData.links.filter(link => link.source.id !== node1.id && link.target.id !== node1.id);
+      const newNodes = graphData.nodes.filter(node => node.id !== node1.id);
+      setGraphData({
+        nodes: newNodes,
+        links: newLinks
+      });
+      setSelectedNodes([]);
+    }
+    if(edgeExists){
+      
+      setGraphData(prevData => ({
+        ...prevData,
+        links: [...prevData.links.filter(link=> !((link.source.id == node1.id && link.target.id == node2.id)||
+                                                (link.source.id == node2.id && link.target.id == node1.id)))]
+      }));
+      setSelectedNodes([]);
+    }
+    else{
+      setSelectedNodes([]);
+    }
     
-    setGraphData({
-      nodes: graphData.nodes,
-      links: newLinks
-    });
   };
 
-  const removeEdge = (d) => {
-
-
-  }
 
   //TOGGLE BUTTONS
   const toggleShowWeights = () => {
@@ -278,24 +280,31 @@ function pathfinding(){
   }
 
   const toggleAddNodes = () => {
-    setGraphStates(prevState => ({...prevState , addingNodes: !graphStates.addingNodes , removingNodes: false}))
+    setGraphStates(prevState => ({...prevState, visualize: false, addingNodes: !graphStates.addingNodes , removingNodes: false}))
   }
   const toggleRemoveNodes = () => {
-    setGraphStates(prevState => ({...prevState , addingNodes: false , removingNodes: !graphStates.removingNodes }))
+    setGraphStates(prevState => ({...prevState, visualize:false , addingNodes: false , removingNodes: !graphStates.removingNodes }))
   }
 
   const toggleVisualization = () => {
 
-    if (graphStates.algorithm == 'prims'){
-      const primSteps = primAlgorithm(graphData);
-      setSteps(primSteps);
+    if (graphStates.algorithm == 'bfs'){
+      const bfsSteps = bfsAlgorithm(graphData , 1, 8);
+      setSteps(bfsSteps);
       setGraphStates(prev => ({...prev , visualize: !graphStates.visualize , currentStep: 0 , addingNodes: false , removingNodes: false }));
       
     }
-    else if(graphStates.algorithm == 'kruskal'){
-      const kruskalSteps = kruskalAlgorithm(graphData);
+    else if(graphStates.algorithm == 'dfs'){
+      const dfsSteps = dfsAlgorithm(graphData ,1,8);
       
-      setSteps(kruskalSteps);
+      setSteps(dfsSteps);
+      setGraphStates(prev => ({...prev , visualize: !graphStates.visualize , currentStep: 0 , addingNodes: false , removingNodes: false }));
+
+    }
+    else if(graphStates.algorithm == 'dijkstra'){
+      const dfsSteps = dfsAlgorithm(graphData ,1,8);
+      
+      setSteps(dfsSteps);
       setGraphStates(prev => ({...prev , visualize: !graphStates.visualize , currentStep: 0 , addingNodes: false , removingNodes: false }));
 
     }
@@ -303,7 +312,7 @@ function pathfinding(){
       nodes: graphData.nodes,
       links: graphData.links.map(link => ({
         ...link,
-        inMST: false,
+        visited: false,
         considered: false,
     }))}
     setGraphData(resetData);
@@ -322,11 +331,14 @@ function pathfinding(){
   const changeAlgorithm = () => {
     const x = document.getElementById("algorithmType").value;
     if (x==1){
-      setGraphStates(prev => ({...prev , algorithm: 'prims'}))
+      setGraphStates(prev => ({...prev , algorithm: 'bfs'}))
       
     }
     else if (x==2){
-      setGraphStates(prev => ({...prev , algorithm: 'kruskal'}))
+      setGraphStates(prev => ({...prev , algorithm: 'dfs'}))
+    }
+    else if (x==3){
+      setGraphStates(prev => ({...prev , algorithm: 'dijkstra'}))
     }
     toggleVisualization();
     
@@ -339,10 +351,9 @@ function pathfinding(){
     
 
   useEffect(() => {
-      changeAlgorithm();
-      const primSteps = primAlgorithm(graphData);
-      console.log(primSteps)
-      setSteps(primSteps);
+      
+      const bfsdata = bfsAlgorithm(graphData ,1,8);
+      setSteps(bfsdata);
       setGraphStates(prev => ({...prev, currentStep: 0}))
   }, []);
 
@@ -360,16 +371,19 @@ function pathfinding(){
     <div className="Container">
       <div className="interface">
         <button className= "graphButton" onClick={toggleShowWeights} style={{backgroundColor: graphStates.showWeights? '#00ff00': '#666', marginTop: '20px'}}>Show Weights</button>
-        <button className= "graphButton" onClick={toggleRemoveNodes} style={{backgroundColor: graphStates.removingNodes? '#00ff00': '#666'}}>Remove Nodes</button>
-        <button className= "graphButton" onClick={toggleAddNodes} style={{backgroundColor: graphStates.addingNodes? '#00ff00': '#666' , marginBottom: '20px'}}>Add Nodes</button>
+        <button className= "graphButton" onClick={toggleAddNodes} style={{backgroundColor: graphStates.addingNodes? '#00ff00': '#666' }}>Add Nodes</button>
+        <button className= "graphButton" onClick={toggleRemoveNodes} style={{backgroundColor: graphStates.removingNodes? '#00ff00': '#666',marginBottom: '20px'}}>Remove Nodes</button>
+        
         
         <label for="nextWeight">Weight of the next edge: </label>
         <input type="number" id="nextWeight" onChange={changeNextWeight} min="1" max="10" style={{width: '30%' , marginBottom: '10px'}}></input>
 
         <label for="algorithmType">Choose an Algorithm: </label>
           <select name="algorithmType" id="algorithmType" onChange={changeAlgorithm}>
-              <option value={1}>Prim's Algorithm</option>
-              <option value={2}>Kruskal Algorithm</option>
+              <option value={1}>BFS Algorithm</option>
+              <option value={2}>DFS Algorithm</option>
+              <option value={3}>Dijkstra</option>
+
           </select>
         <button className= "graphButton" onClick={toggleVisualization} style={{backgroundColor: graphStates.visualize? '#00ff00': '#666', marginTop: '20px' }}>VISUALIZE</button>
         

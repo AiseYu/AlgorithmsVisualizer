@@ -12,10 +12,11 @@ function spanningtree(){
     showWeights: true, 
     addingNodes: false , 
     removingNodes: false , 
-    algorithm: 'kruskal' ,
+    algorithm: 'prims' ,
     visualize: false, 
     currentStep: 0,
-    nodeSelected: false,
+    selectedNode: 0
+    
   });
 
   const [nextWeight , setNextWeight] = useState(1)
@@ -146,7 +147,7 @@ function spanningtree(){
   };
 
   const primAlgorithm = (data) => {
-    
+    console.log(data.nodes);
     const nodes = data.nodes.map(node=> ({id: node.id}));
     const links = data.links.map(link => ({source: link.source.id, target: link.target.id , weight: link.weight}));
     const mstLinks = [];
@@ -212,15 +213,27 @@ function spanningtree(){
   const [selectedNodes, setSelectedNodes] = useState([]);
 
   const handleNodeClick = (node) => {
+    const nodes = graphData.nodes;
+    const links = graphData.links;
     
     setSelectedNodes(prevSelectedNodes => {
       const newSelectedNodes = [...prevSelectedNodes, node];
       if (newSelectedNodes.length === 2) {
-        createNode(newSelectedNodes[0], newSelectedNodes[1]);
-        setGraphStates(prev=> ({...prev , nodeSelected:false}));
+        if(graphStates.addingNodes){
+          createNode(newSelectedNodes[0], newSelectedNodes[1]);
+        }
+        else if(graphStates.removingNodes){
+          removeNode(newSelectedNodes[0], newSelectedNodes[1]);
+        }
+        
+        setGraphStates(prev => ({...prev , selectedNode: 0}))
+        
         return [];
       }
-      setGraphStates(prev=> ({...prev , nodeSelected:true}));
+
+      setGraphStates(prev => ({...prev , selectedNode: node.id}))
+    
+    
       return newSelectedNodes;
     });
   };
@@ -246,6 +259,7 @@ function spanningtree(){
         ...prevData,
         links: [...prevData.links, { source: node1.id, target: node2.id, weight: nextWeight }]
     }));
+      setSelectedNodes([]);
     }
 
     else{
@@ -255,22 +269,36 @@ function spanningtree(){
   };
 
 
-  const removeNode = (d) => {
-  
+  const removeNode = (node1 , node2) => {
+    const edgeExists = graphData.links.some(link => 
+      (link.source.id === node1.id && link.target.id === node2.id) ||
+      (link.source.id === node2.id && link.target.id === node1.id)
+    );
+    console.log(edgeExists);
     
-    const removedNode = d;
-    const newLinks = graphData.links.filter(link => link.source.id !== removedNode.id && link.target.id !== removedNode.id);
+    if(node1.id === node2.id){
+      const newLinks = graphData.links.filter(link => link.source.id !== node1.id && link.target.id !== node1.id);
+      const newNodes = graphData.nodes.filter(node => node.id !== node1.id);
+      setGraphData({
+        nodes: newNodes,
+        links: newLinks
+      });
+      setSelectedNodes([]);
+    }
+    if(edgeExists){
+      
+      setGraphData(prevData => ({
+        ...prevData,
+        links: [...prevData.links.filter(link=> !((link.source.id == node1.id && link.target.id == node2.id)||
+                                                (link.source.id == node2.id && link.target.id == node1.id)))]
+      }));
+      setSelectedNodes([]);
+    }
+    else{
+      setSelectedNodes([]);
+    }
     
-    setGraphData({
-      nodes: graphData.nodes,
-      links: newLinks
-    });
   };
-
-  const removeEdge = (d) => {
-
-
-  }
 
   //TOGGLE BUTTONS
   const toggleShowWeights = () => {
@@ -278,10 +306,10 @@ function spanningtree(){
   }
 
   const toggleAddNodes = () => {
-    setGraphStates(prevState => ({...prevState , addingNodes: !graphStates.addingNodes , removingNodes: false}))
+    setGraphStates(prevState => ({...prevState, visualize: false , addingNodes: !graphStates.addingNodes , removingNodes: false}))
   }
   const toggleRemoveNodes = () => {
-    setGraphStates(prevState => ({...prevState , addingNodes: false , removingNodes: !graphStates.removingNodes }))
+    setGraphStates(prevState => ({...prevState , visualize: false, addingNodes: false , removingNodes: !graphStates.removingNodes }))
   }
 
   const toggleVisualization = () => {
@@ -328,7 +356,15 @@ function spanningtree(){
     else if (x==2){
       setGraphStates(prev => ({...prev , algorithm: 'kruskal'}))
     }
-    toggleVisualization();
+    setGraphStates(prev => ({...prev , visualize : false}));
+    const resetData = {
+      nodes: graphData.nodes,
+      links: graphData.links.map(link => ({
+        ...link,
+        inMST: false,
+        considered: false,
+    }))}
+    setGraphData(resetData);
     
   }
 
@@ -339,11 +375,7 @@ function spanningtree(){
     
 
   useEffect(() => {
-      changeAlgorithm();
-      const primSteps = primAlgorithm(graphData);
-      console.log(primSteps)
-      setSteps(primSteps);
-      setGraphStates(prev => ({...prev, currentStep: 0}))
+      
   }, []);
 
   useEffect(() => {
@@ -355,18 +387,51 @@ function spanningtree(){
   }, [graphStates.currentStep, steps]);
 
   
+  let InfoCard ;
+
+    if(graphStates.algorithm === "prims"){
+        InfoCard =(
+            <div className="InfoMain2">
+                <p className="InfoHeader2">Edges</p>
+                <div className="InfoColor2" id= "ic1s" ></div> <p className="InfoLabel2">Under Consideration</p>
+                <div className="InfoColor2" id= "ic2s" ></div> <p className="InfoLabel2">Inside Minimum Spanning Tree</p>
+            </div>
+        ); 
+    }
+    else if(graphStates.algorithm === "kruskal"){
+      InfoCard =(
+          <div className="InfoMain2">
+              <p className="InfoHeader2">Edges</p>
+              <div className="InfoColor2" id= "ic1s" ></div> <p className="InfoLabel2">Checking the next minimum weighted edge for cycles</p>
+              <div className="InfoColor2" id= "ic2s" ></div> <p className="InfoLabel2">Inside Minimum Spanning Tree</p>
+          </div>
+      ); 
+    }
+
+  let InfoCard2 ;
+    InfoCard2 = (
+      <div className="InfoMain3">
+          <p className="InfoHeader2">Nodes</p>
+          <div className="InfoColor2" id= "ic2s" ></div> <p className="InfoLabel2">Hovering On</p>
+          <div className="InfoColor2" id= "ic3s" ></div> <p className="InfoLabel2">Selected</p>
+          <div className="InfoColor2" id= "ic4s" ></div> <p className="InfoLabel2">Not Selected</p>
+          
+          
+          
+      </div>
+  ); 
 
   return (
     <div className="Container">
       <div className="interface">
         <button className= "graphButton" onClick={toggleShowWeights} style={{backgroundColor: graphStates.showWeights? '#00ff00': '#666', marginTop: '20px'}}>Show Weights</button>
-        <button className= "graphButton" onClick={toggleRemoveNodes} style={{backgroundColor: graphStates.removingNodes? '#00ff00': '#666'}}>Remove Nodes</button>
-        <button className= "graphButton" onClick={toggleAddNodes} style={{backgroundColor: graphStates.addingNodes? '#00ff00': '#666' , marginBottom: '20px'}}>Add Nodes</button>
+        <button className= "graphButton" onClick={toggleAddNodes} style={{backgroundColor: graphStates.addingNodes? '#00ff00': '#666' }}>Add Nodes or Edges</button>
+        <button className= "graphButton" onClick={toggleRemoveNodes} style={{backgroundColor: graphStates.removingNodes? '#00ff00': '#666',marginBottom: '20px'}}>Remove Nodes or Edges</button>
         
         <label for="nextWeight">Weight of the next edge: </label>
         <input type="number" id="nextWeight" onChange={changeNextWeight} min="1" max="10" style={{width: '30%' , marginBottom: '10px'}}></input>
 
-        <label for="algorithmType">Choose an Algorithm: </label>
+        <label for="algorithmType"><br/>Choose an Algorithm: </label>
           <select name="algorithmType" id="algorithmType" onChange={changeAlgorithm}>
               <option value={1}>Prim's Algorithm</option>
               <option value={2}>Kruskal Algorithm</option>
@@ -386,7 +451,13 @@ function spanningtree(){
         
       </div>
       <div className="graphContainer">
+        
         <Graph data={graphData} graphStates={graphStates} onNodeClick = {handleNodeClick}/>
+        <div>
+          {graphStates.visualize? <>{InfoCard}</>: <></>}
+          {InfoCard2}
+        </div>
+        
 
       </div>
       

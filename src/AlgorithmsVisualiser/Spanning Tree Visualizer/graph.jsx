@@ -5,9 +5,11 @@ const Graph = ({ data, graphStates , onNodeClick}) => {
   const svgRef = useRef();
   const simulationRef = useRef();
   const tooltipRef = useRef();
+  const instructionRef = useRef();
 
   useEffect(() => {
     const tooltip = d3.select(tooltipRef.current);
+    const instruction = d3.select(instructionRef.current);
 
     const svg = d3.select(svgRef.current)
       .attr("width", 800)
@@ -19,11 +21,22 @@ const Graph = ({ data, graphStates , onNodeClick}) => {
     if (!simulationRef.current) {
       simulationRef.current = d3.forceSimulation()
         .force('link', d3.forceLink().id(d => d.id))
-        .force('charge', d3.forceManyBody().strength(-200))
+        .force('charge', d3.forceManyBody().strength(-600))
         .force('center', d3.forceCenter(400, 240));
     }
 
+    
+
     const simulation = simulationRef.current;
+
+    
+    if(graphStates.visualize){
+      simulation.force('center', d3.forceCenter(300, 240));
+    }
+    else{
+      simulation.force('center', d3.forceCenter(400, 240));
+
+    }
 
     // Clear previous content
     svg.selectAll('*').remove();
@@ -42,7 +55,7 @@ const Graph = ({ data, graphStates , onNodeClick}) => {
       .attr('stroke' , d =>  d.considered ? '#0000ff': d.inMST? '#ff0000': '#ffffff')
       .attr('stroke-width' , d => d.inMST ? 3 : d.considered  ? 3 :0.5 );
     
-      
+    
 
     const linkLabels = svg.append("g")
     .selectAll("text")
@@ -67,22 +80,24 @@ const Graph = ({ data, graphStates , onNodeClick}) => {
       .selectAll('circle')
       .data(data.nodes)
       .enter().append('circle')
-      .attr('r', 10)
-      .attr('fill', '#00ff00')
+      .attr('r', d => d.id == graphStates.selectedNode? 14: 10)
+      .attr('fill', d => d.id == graphStates.selectedNode ?  '#00ff00': '#ffffff')
       .on('mouseenter' , handleMouseEnter)
       .on('mouseout' , handleMouseOut)
       .on('click' , function(event, d){
-        if(onNodeClick && graphStates.addingNodes){
+        if(onNodeClick && (graphStates.addingNodes||graphStates.removingNodes)){
           onNodeClick(d);
           
         }
       })
+      
       .call(d3.drag()
         .on('start', dragStarted)
         .on('drag', dragged)
         .on('end', dragEnded))
         
     
+
     node.append('title')
       .text(d => d.id)
     
@@ -97,6 +112,8 @@ const Graph = ({ data, graphStates , onNodeClick}) => {
       node
         .attr('cx', d => d.x)
         .attr('cy', d => d.y);
+        
+
 
       linkLabels
         .attr("x", d => (d.source.x + d.target.x) / 2)
@@ -106,8 +123,8 @@ const Graph = ({ data, graphStates , onNodeClick}) => {
     });
 
     simulation.force('link').links(data.links);
-    simulation.force('link').distance(d => d.weight *20);
-    simulation.force('link').strength(d => d.weight*0.2);
+    simulation.force('link').distance(d => 3);
+    simulation.force('link').strength(d => 0.5/d.weight);
 
     simulation.alpha(1).restart();
 
@@ -131,27 +148,59 @@ const Graph = ({ data, graphStates , onNodeClick}) => {
 
     function handleMouseEnter(event, d) {
       tooltip.style("opacity", 1)
-              .text(`Node ID: ${d.id}`);
-      d3.select(this).transition().duration(200)
-        .attr('r', '12')
+              .text(`On Node ID: ${d.id} 
+              ,Selected Node: ${graphStates.selectedNode? graphStates.selectedNode: 'None'}`);
+      if(graphStates.selectedNode ===0 ){
+        d3.select(this).transition().duration(200)
+        .attr('r', '14')
         .attr('fill', '#ff0000');
+      }
         
       
     }
 
     function handleMouseOut(event, d) {
-      
-      d3.select(this).transition().duration(200)
+      tooltip.style("opacity", 1)
+              .text(`On Node ID: None 
+               ,Selected Node: ${graphStates.selectedNode? graphStates.selectedNode: 'None'}`);
+      if(graphStates.selectedNode ===0 ){
+        d3.select(this).transition().duration(300)
         .attr('r', '10')
-        .attr('fill', '#00ff00');
+        .attr('fill', '#ffffff');
+      }
       
-      
+    }
+
+    if (graphStates.addingNodes){
+      if(graphStates.selectedNode ===0){
+        instruction.style("opacity", 1)
+              .text(`Select a Node`);
+      }
+      else{
+        instruction.style("opacity", 1)
+              .text(`Click on the selected node again to add a new node or ${'\n'}click on an existing node to add an edge with the corresponding next edge weight.`);
+
+      }
+    }
+    else if(graphStates.removingNodes){
+      if(graphStates.selectedNode ===0){
+        instruction.style("opacity", 1)
+              .text(`Select a Node.`);
+      }
+      else{
+        instruction.style("opacity", 1)
+              .text(`Click on the selected node again to remove the node or ${'\n'}click on an existing node to remove the edge in between.`);
+
+      }
+
+    }
+    else{
+      instruction.style("opacity", 0)
     }
     
     
 
     return () => {
-      // Cleanup the simulation on component unmount
       simulation.stop();
     };
   }, [data, graphStates , onNodeClick]);
@@ -159,7 +208,9 @@ const Graph = ({ data, graphStates , onNodeClick}) => {
   return (
     <div style={{ position: 'relative' }}>
       <svg ref={svgRef} ></svg>
+      <div ref={instructionRef} className='instruction'/>
       <div ref={tooltipRef} className='tooltip'/>
+      
     </div>
   );
 };
@@ -167,7 +218,3 @@ const Graph = ({ data, graphStates , onNodeClick}) => {
 export default Graph;
 
 
-function stateSequencerPrim(n){
-  return n%2;
-
-}
