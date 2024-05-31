@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
-import './pathfinding.css'
+
 const Graph = ({ data, graphStates , onNodeClick}) => {
   const svgRef = useRef();
   const simulationRef = useRef();
@@ -22,7 +22,7 @@ const Graph = ({ data, graphStates , onNodeClick}) => {
       simulationRef.current = d3.forceSimulation()
         .force('link', d3.forceLink().id(d => d.id))
         .force('charge', d3.forceManyBody().strength(-600))
-        .force('center', d3.forceCenter(400, 240));
+        .force('center', d3.forceCenter(350, 240));
     }
 
     
@@ -30,13 +30,13 @@ const Graph = ({ data, graphStates , onNodeClick}) => {
     const simulation = simulationRef.current;
 
     
-    if(graphStates.visualize){
-      simulation.force('center', d3.forceCenter(300, 240));
-    }
-    else{
-      simulation.force('center', d3.forceCenter(400, 240));
+    // if(graphStates.visualize){
+    //   simulation.force('center', d3.forceCenter(350, 240));
+    // }
+    // else{
+    //   simulation.force('center', d3.forceCenter(400, 240));
 
-    }
+    // }
 
     // Clear previous content
     svg.selectAll('*').remove();
@@ -52,8 +52,8 @@ const Graph = ({ data, graphStates , onNodeClick}) => {
       .enter().append('line')
       .attr('stroke-width', d => 0.5)
       
-      .attr('stroke' , d =>  d.considered ? '#0000ff': d.visited? '#ff0000': '#ffffff')
-      .attr('stroke-width' , d => d.visited ? 3 : d.considered  ? 3 :0.5 );
+      .attr('stroke', d => d.path ? '#ff0000' : d.visited ? '#0000ff' : d.considered ?'#00ff00': '#ffffff')
+      .attr('stroke-width', d => d.path || d.visited ? 3 : d.considered ? 2 : 0.5);
     
     
 
@@ -67,9 +67,26 @@ const Graph = ({ data, graphStates , onNodeClick}) => {
     .text(d => d.weight);
 
 
+    
+    const nodeLabels = svg.append("g")
+    .selectAll("text")
+    .data(data.nodes)
+    .enter().append("text")
+    .attr("font-size", "12px")
+    .attr("fill", "white")
+    .text(d => d.id);
+    
+    nodeLabels.style("fill" , "#00ff00")
+
+
     //STATES
     if(!graphStates.showWeights){
         linkLabels.style("display", "none")
+    }
+
+    if(!graphStates.showId){
+        nodeLabels.style("display", "none")
+
     }
     
 
@@ -118,6 +135,10 @@ const Graph = ({ data, graphStates , onNodeClick}) => {
       linkLabels
         .attr("x", d => (d.source.x + d.target.x) / 2)
         .attr("y", d => (d.source.y + d.target.y) / 2);
+      
+      nodeLabels
+        .attr("x", d => d.x-10)
+        .attr("y", d =>  d.y-10);
 
     
     });

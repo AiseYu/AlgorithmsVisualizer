@@ -50,6 +50,13 @@ function Sorting(){
                 borderColor: 'rgb(200, 0, 0)',
                 tension: 0.1
             },
+            {
+                label: 'SELECTION SORT',
+                data: [],
+                fill: false,
+                borderColor: 'yellow',
+                tension: 0.1
+            },
         ],
         });
     
@@ -63,6 +70,7 @@ function Sorting(){
         let mergeSortData = [];
         let quickSortData  = [];
         let bubbleSortData = [];
+        let selectionSortData = [];
         let label_array = [];
         
 
@@ -91,6 +99,10 @@ function Sorting(){
                 TimeTaken = measureTimeTaken(bubbleSort2, array1);
                 bubbleSortData = [...bubbleSortData , TimeTaken];
             }
+            if(graphToggle.selectionSort){
+                TimeTaken = measureTimeTaken(selectionSort2, array1);
+                selectionSortData = [...selectionSortData , TimeTaken];
+            }
             
             
         }
@@ -116,6 +128,13 @@ function Sorting(){
                     data: bubbleSortData,
                     fill: false,
                     borderColor: 'rgb(200, 0, 0)',
+                    tension: 0.1
+                },
+                {
+                    label: 'SELECTION SORT',
+                    data: selectionSortData,
+                    fill: false,
+                    borderColor: '#00ff00',
                     tension: 0.1
                 },
             ],
@@ -220,6 +239,8 @@ function Sorting(){
         let swapped;
         let arrayBars = document.getElementsByClassName('arrElement');
         let block;
+        
+
 
         do {
             swapped = false;
@@ -247,6 +268,7 @@ function Sorting(){
                     block.backgroundColor = "rgb(153, 0, 255)";
                     block = arrayBars[i+1].style;
                     block.backgroundColor = "rgb(153, 0, 255)";
+                    
                 
             }
             
@@ -254,6 +276,80 @@ function Sorting(){
         
         
     };
+
+
+    const selectionSort = async (arr) => {
+
+        let arrayBars = document.getElementsByClassName('arrElement');
+        let block;
+        let compare=0;
+        const array = arr.slice();
+        for (let i = 0; i < array.length; i++) {
+          let minIndex = i;
+    
+          for (let j = i + 1; j < array.length; j++) {
+    
+            block = arrayBars[i].style;
+            block.backgroundColor = "red";
+            block = arrayBars[j].style;
+            block.backgroundColor = "white";
+            block = arrayBars[minIndex].style;
+            block.backgroundColor = "white";
+            await new Promise(resolve => setTimeout(resolve, 5000*(1/speed)));
+            block = arrayBars[j].style;
+            block.backgroundColor = "rgb(153, 0, 255)";
+            block = arrayBars[minIndex].style;
+            block.backgroundColor = "rgb(153, 0, 255)";
+    
+            if (array[j].value < array[minIndex].value) {
+              minIndex = j;
+            }
+            block = arrayBars[minIndex].style;
+            block.backgroundColor = "green";
+            await new Promise(resolve => setTimeout(resolve, 5000*(1/speed)));
+    
+    
+            block = arrayBars[minIndex].style;
+            block.backgroundColor = "rgb(153, 0, 255)";
+            compare=compare+1;
+    
+          }
+    
+    
+          if (minIndex !== i) {
+            let temp = array[i];
+            array[i] = array[minIndex];
+            array[minIndex] = temp;
+    
+            block = arrayBars[i].style;
+            block.backgroundColor = "yellow";
+            block = arrayBars[minIndex].style;
+            block.backgroundColor = "yellow";
+            await new Promise(resolve => setTimeout(resolve, 5000*(1/speed)));
+    
+            
+            
+            setArr(array.slice());
+    
+            block = arrayBars[i].style;
+            block.backgroundColor = "yellow";
+            block = arrayBars[minIndex].style;
+            block.backgroundColor = "yellow";
+            await new Promise(resolve => setTimeout(resolve, 5000*(1/speed)));
+    
+            block = arrayBars[i].style;
+            block.backgroundColor = "rgb(153, 0, 255)";
+            block = arrayBars[minIndex].style;
+            block.backgroundColor = "rgb(153, 0, 255)";
+            await new Promise(resolve => setTimeout(resolve, 5000*(1/speed))); // Delay for visualization
+           
+        
+          }
+        }
+        setComparisions(compare);
+
+      };
+    
 
     
 
@@ -435,6 +531,9 @@ function Sorting(){
         else if(sortType === "s3"){
             await bubbleSort(arr);
         }
+        else if(sortType === "s4"){
+            await selectionSort(arr);
+        }
         
     }
 
@@ -445,8 +544,6 @@ function Sorting(){
     useEffect(() => {
         changeSortType();
     }, [data]);
-
-    
 
 
 
@@ -493,6 +590,17 @@ function Sorting(){
             </div>
         ); 
     }
+    else if(sortType === "s4"){
+        InfoCard =(
+            <div className="InfoMain">
+                <div className="InfoColor" id= "ic8" ></div> <p className="InfoLabel">Element to be sorted</p>
+                <div className="InfoColor" id= "ic9" ></div> <p className="InfoLabel">Current minimum element</p>
+                <div className="InfoColor" id= "ic10" ></div> <p className="InfoLabel">Under comparison</p>
+                <div className="InfoColor" id= "ic11" ></div> <p className="InfoLabel">Elements to be swapped</p>
+
+            </div>
+        ); 
+    }
 
     const changeSpeed = () => {
         let x = document.getElementById("speed").value;
@@ -503,6 +611,7 @@ function Sorting(){
         mergesort: true,
         quicksort: true,
         bubblesort: true,
+        selectionSort: true,
         
       });
     
@@ -521,8 +630,8 @@ function Sorting(){
         
         <div className="sortingInterface">
         <div className="slider"><label htmlFor= "arrSize">ARRAY SIZE</label><input type="range" min="16" max="180" id="arrSize" onChange={resetArray} onMouseUp={resetArray}></input></div>
-        <div className="slider"><label htmlFor= "speed">ANIMATION SPEED</label><input type="range" min="10" max="200" id="speed" onChange={changeSpeed}></input></div>
-            <label for="sortType">Choose a Sorting Algorithm: </label>
+        <div className="slider"><label htmlFor= "arrSize">ANIMATION SPEED</label><input type="range" min="10" max="200" id="speed" onChange={changeSpeed}></input></div>
+            <label for="cars">Choose a Sorting Algorithm: </label>
             <select name="Sorting Type" id="sortType" onChange={changeSortType}>
                 <option value="s1">Merge Sort</option>
                 <option value="s2">Quick Sort</option>
@@ -573,6 +682,15 @@ function Sorting(){
                 checked={graphToggle.bubblesort} 
                 onChange={handleGraphToggle}/>
                 Bubble Sort
+            </label>
+            <br />
+            <label>
+                <input
+                type="checkbox"
+                name="selectionSort"
+                checked={graphToggle.selectionSort} 
+                onChange={handleGraphToggle}/>
+                Selection Sort
             </label>
             
             </div>
@@ -699,6 +817,23 @@ function bubbleSort2(arr){
         } while (swapped);
         return arr;
 }
+
+function selectionSort2(arr) {
+    const n = arr.length;
+    for (let i = 0; i < n-1; i++) {
+      let minIndex = i;
+      for (let j = i + 1; j < n; j++) {
+        if (arr[j] < arr[minIndex]) {
+          minIndex = j;
+        }
+      }
+      if (minIndex != i) {
+        let temp = arr[i];
+        arr[i] = arr[minIndex];
+        arr[minIndex] = temp;
+      }
+    }
+  };
 
 function measureTimeTaken(func, ...args) {
 

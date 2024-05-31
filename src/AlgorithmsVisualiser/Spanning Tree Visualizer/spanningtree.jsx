@@ -10,6 +10,7 @@ function spanningtree(){
     
   const [graphStates , setGraphStates] = useState({
     showWeights: true, 
+    showId: false,
     addingNodes: false , 
     removingNodes: false , 
     algorithm: 'prims' ,
@@ -147,7 +148,6 @@ function spanningtree(){
   };
 
   const primAlgorithm = (data) => {
-    console.log(data.nodes);
     const nodes = data.nodes.map(node=> ({id: node.id}));
     const links = data.links.map(link => ({source: link.source.id, target: link.target.id , weight: link.weight}));
     const mstLinks = [];
@@ -304,6 +304,10 @@ function spanningtree(){
   const toggleShowWeights = () => {
     setGraphStates(prevState => ({...prevState , showWeights: !graphStates.showWeights}));
   }
+  const toggleShowId = () => {
+    setGraphStates(prevState => ({...prevState , showId: !graphStates.showId}));
+
+  }
 
   const toggleAddNodes = () => {
     setGraphStates(prevState => ({...prevState, visualize: false , addingNodes: !graphStates.addingNodes , removingNodes: false}))
@@ -336,16 +340,8 @@ function spanningtree(){
     }))}
     setGraphData(resetData);
     
-    
-
   }
 
-
-  
-  const resetGraph = () => {
-
-
-  }
 
   const changeAlgorithm = () => {
     const x = document.getElementById("algorithmType").value;
@@ -425,6 +421,7 @@ function spanningtree(){
     <div className="Container">
       <div className="interface">
         <button className= "graphButton" onClick={toggleShowWeights} style={{backgroundColor: graphStates.showWeights? '#00ff00': '#666', marginTop: '20px'}}>Show Weights</button>
+        <button className= "graphButton" onClick={toggleShowId} style={{backgroundColor: graphStates.showId? '#00ff00': '#666'}}>Show Node ID</button>
         <button className= "graphButton" onClick={toggleAddNodes} style={{backgroundColor: graphStates.addingNodes? '#00ff00': '#666' }}>Add Nodes or Edges</button>
         <button className= "graphButton" onClick={toggleRemoveNodes} style={{backgroundColor: graphStates.removingNodes? '#00ff00': '#666',marginBottom: '20px'}}>Remove Nodes or Edges</button>
         

@@ -150,8 +150,26 @@ button:hover{
     display: block;
     background-color: rgb(13, 255, 0);
 }
-
-
+#ic8{
+    
+    display: block;
+    background-color: red;
+}
+#ic9{
+    
+    display: block;
+    background-color: green;
+}
+#ic10{
+    
+    display: block;
+    background-color:white;
+}
+#ic11{
+    
+    display: block;
+    background-color: yellow;
+}
 
 
 

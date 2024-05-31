@@ -3,19 +3,21 @@ import './pathfinding.css'
 import { MinHeap } from 'mnemonist';
 
 import Graph from "./graph";
-
+import { index } from "d3";
 
 
 function pathfinding(){
     
   const [graphStates , setGraphStates] = useState({
     showWeights: true, 
-    addingNodes: false , 
+    showId: false,
+    addingNodes: false ,
     removingNodes: false , 
     algorithm: 'bfs' ,
     visualize: false, 
     currentStep: 0,
-    nodeSelected: false,
+    selectedNode: 0
+    
   });
 
   const [nextWeight , setNextWeight] = useState(1)
@@ -58,134 +60,214 @@ function pathfinding(){
   
 
   //main algorithms
+
   const dfsAlgorithm = (data, source, destination) => {
     const nodes = data.nodes.map(node => ({ id: node.id }));
     const links = data.links.map(link => ({ source: link.source.id, target: link.target.id, weight: link.weight }));
     const steps = [];
     const visited = new Set();
     const stack = [source];
-  
+    const parents = {};
+
     while (stack.length > 0) {
-      const currentNode = stack.pop();
-  
-      if (!visited.has(currentNode)) {
-        visited.add(currentNode);
-  
-        const step = {
-          nodes,
-          links: links.map(link => ({
-            ...link,
-            visited: visited.has(link.source) && visited.has(link.target),
-            considered: link.source === currentNode || link.target === currentNode,
-          })),
-        };
-        steps.push(step);
-  
-        if (currentNode === destination) break;
-  
-        const neighbors = links
-          .filter(link => link.source === currentNode || link.target === currentNode)
-          .map(link => (link.source === currentNode ? link.target : link.source))
-          .filter(neighbor => !visited.has(neighbor));
-  
-        stack.push(...neighbors);
-      }
+        const currentNode = stack.pop();
+
+        if (!visited.has(currentNode)) {
+            visited.add(currentNode);
+
+            const step = {
+                nodes,
+                links: links.map(link => ({
+                    ...link,
+                    visited: visited.has(link.source) && visited.has(link.target),
+                    considered: link.source === currentNode || link.target === currentNode,
+                    path: false 
+                }))
+            };
+            steps.push(step);
+
+            if (currentNode === destination) break;
+
+            const neighbors = links
+                .filter(link => link.source === currentNode || link.target === currentNode)
+                .map(link => (link.source === currentNode ? link.target : link.source))
+                .filter(neighbor => !visited.has(neighbor));
+
+            neighbors.forEach(neighbor => {
+                stack.push(neighbor);
+                parents[neighbor] = currentNode;
+            });
+        }
     }
+
+    const finalStep = {
+        nodes,
+        links: links.map(link => {
+            let path = false;
+            let currentNode = destination;
+            while (currentNode !== source) {
+                const parent = parents[currentNode];
+                if ((link.source === currentNode && link.target === parent) || (link.target === currentNode && link.source === parent)) {
+                    path = true;
+                }
+                currentNode = parent;
+            }
+            return {
+                ...link,
+                visited: visited.has(link.source) && visited.has(link.target),
+                considered: false,
+                path
+            };
+        })
+    };
+    steps.push(finalStep);
+
     return steps;
-  };
+};
   
-  const bfsAlgorithm = (data, source, destination) => {
-    const nodes = data.nodes.map(node => ({ id: node.id }));
-    const links = data.links.map(link => ({ source: link.source.id, target: link.target.id, weight: link.weight }));
-    const steps = [];
-    const visited = new Set();
-    const queue = [source];
-  
-    while (queue.length > 0) {
+const bfsAlgorithm = (data, source, destination) => {
+  const nodes = data.nodes.map(node => ({ id: node.id }));
+  const links = data.links.map(link => ({ source: link.source.id, target: link.target.id, weight: link.weight }));
+  const steps = [];
+  const visited = new Set();
+  const queue = [source];
+  const parents = {};
+
+  while (queue.length > 0) {
       const currentNode = queue.shift();
-  
+
       if (!visited.has(currentNode)) {
-        visited.add(currentNode);
-  
-        const step = {
-          nodes,
-          links: links.map(link => ({
-            ...link,
-            visited: visited.has(link.source) && visited.has(link.target),
-            considered: link.source === currentNode || link.target === currentNode,
-          })),
-        };
-        steps.push(step);
-  
-        if (currentNode === destination) break;
-  
-        const neighbors = links
-          .filter(link => link.source === currentNode || link.target === currentNode)
-          .map(link => (link.source === currentNode ? link.target : link.source))
-          .filter(neighbor => !visited.has(neighbor));
-  
-        queue.push(...neighbors);
+          visited.add(currentNode);
+
+          const step = {
+              nodes,
+              links: links.map(link => ({
+                  ...link,
+                  visited: visited.has(link.source) && visited.has(link.target),
+                  considered: link.source === currentNode || link.target === currentNode,
+                  path: false 
+              }))
+          };
+          steps.push(step);
+
+          if (currentNode === destination) break;
+
+          const neighbors = links
+              .filter(link => link.source === currentNode || link.target === currentNode)
+              .map(link => (link.source === currentNode ? link.target : link.source))
+              .filter(neighbor => !visited.has(neighbor));
+
+          neighbors.forEach(neighbor => {
+              queue.push(neighbor);
+              parents[neighbor] = currentNode;
+          });
       }
-    }
-    return steps;
+  }
+
+  
+  const finalStep = {
+      nodes,
+      links: links.map(link => {
+          let path = false;
+          let currentNode = destination;
+          while (currentNode !== source) {
+              const parent = parents[currentNode];
+              if ((link.source === currentNode && link.target === parent) || (link.target === currentNode && link.source === parent)) {
+                  path = true;
+              }
+              currentNode = parent;
+          }
+          return {
+              ...link,
+              visited: visited.has(link.source) && visited.has(link.target),
+              considered: false,
+              path
+          };
+      })
   };
+  steps.push(finalStep);
+
+  return steps;
+};
   
-  const dijkstraAlgorithm = (data, source, destination) => {
-    const nodes = data.nodes.map(node => ({ id: node.id }));
-    const links = data.links.map(link => ({ source: link.source.id, target: link.target.id, weight: link.weight }));
-    const steps = [];
-    const distances = {};
-    const previous = {};
-    const visited = new Set();
-    const queue = new MinHeap((a, b) => a.distance - b.distance);
-  
-    nodes.forEach(node => {
+const dijkstraAlgorithm = (data, source, destination) => {
+  const nodes = data.nodes.map(node => ({ id: node.id }));
+  const links = data.links.map(link => ({ source: link.source.id, target: link.target.id, weight: link.weight }));
+  const steps = [];
+  const distances = {};
+  const previous = {};
+  const visited = new Set();
+  const queue = new MinHeap((a, b) => a.distance - b.distance);
+
+  nodes.forEach(node => {
       distances[node.id] = Infinity;
       previous[node.id] = null;
-    });
-    distances[source] = 0;
-  
-    queue.push({ id: source, distance: 0 });
-  
-    while (queue.size > 0) {
+  });
+  distances[source] = 0;
+
+  queue.push({ id: source, distance: 0 });
+
+  while (queue.size > 0) {
       const { id: currentNode } = queue.pop();
       visited.add(currentNode);
-  
+
       const step = {
-        nodes,
-        links: links.map(link => ({
-          ...link,
-          visited: visited.has(link.source) && visited.has(link.target),
-          considered: link.source === currentNode || link.target === currentNode,
-          distance: distances[link.source] + link.weight,
-        })),
+          nodes,
+          links: links.map(link => ({
+              ...link,
+              visited: visited.has(link.source) && visited.has(link.target),
+              considered: link.source === currentNode || link.target === currentNode,
+              path: false
+          }))
       };
       steps.push(step);
-  
-      if (currentNode === destination) break;
-  
-      const neighbors = links
-        .filter(link => link.source === currentNode || link.target === currentNode)
-        .map(link => ({
-          ...link,
-          neighbor: link.source === currentNode ? link.target : link.source,
-        }));
-  
-      for (const { neighbor, weight } of neighbors) {
-        if (!visited.has(neighbor)) {
-          const newDistance = distances[currentNode] + weight;
-          if (newDistance < distances[neighbor]) {
-            distances[neighbor] = newDistance;
-            previous[neighbor] = currentNode;
-            queue.push({ id: neighbor, distance: newDistance });
-          }
-        }
-      }
-    }
-    return steps;
-  };
 
- 
+      if (currentNode === destination) break;
+
+      const neighbors = links
+          .filter(link => link.source === currentNode || link.target === currentNode)
+          .map(link => ({
+              ...link,
+              neighbor: link.source === currentNode ? link.target : link.source,
+          }));
+
+      for (const { neighbor, weight } of neighbors) {
+          if (!visited.has(neighbor)) {
+              const newDistance = distances[currentNode] + weight;
+              if (newDistance < distances[neighbor]) {
+                  distances[neighbor] = newDistance;
+                  previous[neighbor] = currentNode;
+                  queue.push({ id: neighbor, distance: newDistance });
+              }
+          }
+      }
+  }
+
+  const finalStep = {
+      nodes,
+      links: links.map(link => {
+          let path = false;
+          let currentNode = destination;
+          while (currentNode !== source) {
+              const parent = previous[currentNode];
+              if ((link.source === currentNode && link.target === parent) || (link.target === currentNode && link.source === parent)) {
+                  path = true;
+              }
+              currentNode = parent;
+          }
+          return {
+              ...link,
+              visited: visited.has(link.source) && visited.has(link.target),
+              considered: false,
+              path
+          };
+      })
+  };
+  steps.push(finalStep);
+
+  return steps;
+};
+
   const nextStep = () => {
     setGraphStates(prev => ({...prev , currentStep: Math.min(steps.length-1 , prev.currentStep +1)}));
   };
@@ -199,15 +281,27 @@ function pathfinding(){
   const [selectedNodes, setSelectedNodes] = useState([]);
 
   const handleNodeClick = (node) => {
+    const nodes = graphData.nodes;
+    const links = graphData.links;
     
     setSelectedNodes(prevSelectedNodes => {
       const newSelectedNodes = [...prevSelectedNodes, node];
       if (newSelectedNodes.length === 2) {
-        createNode(newSelectedNodes[0], newSelectedNodes[1]);
-        setGraphStates(prev=> ({...prev , nodeSelected:false}));
+        if(graphStates.addingNodes){
+          createNode(newSelectedNodes[0], newSelectedNodes[1]);
+        }
+        else if(graphStates.removingNodes){
+          removeNode(newSelectedNodes[0], newSelectedNodes[1]);
+        }
+        
+        setGraphStates(prev => ({...prev , selectedNode: 0}))
+        
         return [];
       }
-      setGraphStates(prev=> ({...prev , nodeSelected:true}));
+
+      setGraphStates(prev => ({...prev , selectedNode: node.id}))
+    
+    
       return newSelectedNodes;
     });
   };
@@ -233,6 +327,7 @@ function pathfinding(){
         ...prevData,
         links: [...prevData.links, { source: node1.id, target: node2.id, weight: nextWeight }]
     }));
+      setSelectedNodes([]);
     }
 
     else{
@@ -273,38 +368,41 @@ function pathfinding(){
     
   };
 
-
   //TOGGLE BUTTONS
   const toggleShowWeights = () => {
     setGraphStates(prevState => ({...prevState , showWeights: !graphStates.showWeights}));
+    
+  }
+  const toggleShowId = () => {
+    setGraphStates(prevState => ({...prevState , showId: !graphStates.showId}));
+
   }
 
   const toggleAddNodes = () => {
-    setGraphStates(prevState => ({...prevState, visualize: false, addingNodes: !graphStates.addingNodes , removingNodes: false}))
+    setGraphStates(prevState => ({...prevState, visualize: false , addingNodes: !graphStates.addingNodes , removingNodes: false}))
   }
   const toggleRemoveNodes = () => {
-    setGraphStates(prevState => ({...prevState, visualize:false , addingNodes: false , removingNodes: !graphStates.removingNodes }))
+    setGraphStates(prevState => ({...prevState , visualize: false, addingNodes: false , removingNodes: !graphStates.removingNodes }))
   }
 
   const toggleVisualization = () => {
-
     if (graphStates.algorithm == 'bfs'){
-      const bfsSteps = bfsAlgorithm(graphData , 1, 8);
+      const bfsSteps = bfsAlgorithm(graphData , source, destination);
       setSteps(bfsSteps);
       setGraphStates(prev => ({...prev , visualize: !graphStates.visualize , currentStep: 0 , addingNodes: false , removingNodes: false }));
       
     }
     else if(graphStates.algorithm == 'dfs'){
-      const dfsSteps = dfsAlgorithm(graphData ,1,8);
+      const dfsSteps = dfsAlgorithm(graphData ,source,destination);
       
       setSteps(dfsSteps);
       setGraphStates(prev => ({...prev , visualize: !graphStates.visualize , currentStep: 0 , addingNodes: false , removingNodes: false }));
 
     }
     else if(graphStates.algorithm == 'dijkstra'){
-      const dfsSteps = dfsAlgorithm(graphData ,1,8);
+      const dijkstra = dijkstraAlgorithm(graphData ,source,destination);
       
-      setSteps(dfsSteps);
+      setSteps(dijkstra);
       setGraphStates(prev => ({...prev , visualize: !graphStates.visualize , currentStep: 0 , addingNodes: false , removingNodes: false }));
 
     }
@@ -316,17 +414,12 @@ function pathfinding(){
         considered: false,
     }))}
     setGraphData(resetData);
-    
-    
-
-  }
-
-
-  
-  const resetGraph = () => {
 
 
   }
+
+
+
 
   const changeAlgorithm = () => {
     const x = document.getElementById("algorithmType").value;
@@ -340,21 +433,40 @@ function pathfinding(){
     else if (x==3){
       setGraphStates(prev => ({...prev , algorithm: 'dijkstra'}))
     }
-    toggleVisualization();
+    setGraphStates(prev => ({...prev , visualize : false}));
+    const resetData = {
+      nodes: graphData.nodes,
+      links: graphData.links.map(link => ({
+        ...link,
+        visited: false,
+        considered: false,
+    }))}
+    setGraphData(resetData);
     
   }
 
+
+  
   const changeNextWeight = () => {
     const x = document.getElementById("nextWeight").value;
     setNextWeight(x);
+  }
+
+  const [destination , setDestination] = useState(8)
+  const changeDestination =() => {
+    const x = Number(document.getElementById("destination").value);
+    setDestination(x);
+  }
+  const [source , setSource] = useState(1)
+  const changeSource =() => {
+    const x = Number(document.getElementById("source").value);
+    setSource(x);
+
   }
     
 
   useEffect(() => {
       
-      const bfsdata = bfsAlgorithm(graphData ,1,8);
-      setSteps(bfsdata);
-      setGraphStates(prev => ({...prev, currentStep: 0}))
   }, []);
 
   useEffect(() => {
@@ -366,25 +478,75 @@ function pathfinding(){
   }, [graphStates.currentStep, steps]);
 
   
+  let InfoCard ;
+
+    if(graphStates.algorithm === "bfs"){
+        InfoCard =(
+            <div className="InfoMain2">
+                <p className="InfoHeader2">Edges</p>
+                <div className="InfoColor2" id= "ic1s" ></div> <p className="InfoLabel2">Visited Edges</p>
+                <div className="InfoColor2" id= "ic2s" ></div> <p className="InfoLabel2">Path Generated</p>
+                <div className="InfoColor2" id= "ic3s" ></div> <p className="InfoLabel2">Neighbouring Edges</p>
+            </div>
+        ); 
+    }
+    else if(graphStates.algorithm === "dfs"){
+      InfoCard =(
+          <div className="InfoMain2">
+              <p className="InfoHeader2">Edges</p>
+              <div className="InfoColor2" id= "ic1s" ></div> <p className="InfoLabel2">Visited Edges or edges to visited nodes</p>
+              <div className="InfoColor2" id= "ic2s" ></div> <p className="InfoLabel2">Generated Path</p>
+              <div className="InfoColor2" id= "ic3s" ></div> <p className="InfoLabel2">Neighbouring Edges to the newly traversed node</p>
+              
+          </div>
+      ); 
+    }
+    else if(graphStates.algorithm === "dijkstra"){
+      InfoCard =(
+          <div className="InfoMain2">
+              <p className="InfoHeader2">Edges</p>
+              <div className="InfoColor2" id= "ic1s" ></div> <p className="InfoLabel2">Analysed Path</p>
+              <div className="InfoColor2" id= "ic2s" ></div> <p className="InfoLabel2">Shortest Path</p>
+              <div className="InfoColor2" id= "ic3s" ></div> <p className="InfoLabel2">New Neighbouring Paths to be Analysed</p>
+          </div>
+      ); 
+    }
+
+  let InfoCard2 ;
+    InfoCard2 = (
+      <div className="InfoMain3">
+          <p className="InfoHeader2">Nodes</p>
+          <div className="InfoColor2" id= "ic2s" ></div> <p className="InfoLabel2">Hovering On</p>
+          <div className="InfoColor2" id= "ic3s" ></div> <p className="InfoLabel2">Selected</p>
+          <div className="InfoColor2" id= "ic4s" ></div> <p className="InfoLabel2">Not Selected</p>
+          
+          
+          
+      </div>
+  ); 
 
   return (
     <div className="Container">
       <div className="interface">
         <button className= "graphButton" onClick={toggleShowWeights} style={{backgroundColor: graphStates.showWeights? '#00ff00': '#666', marginTop: '20px'}}>Show Weights</button>
-        <button className= "graphButton" onClick={toggleAddNodes} style={{backgroundColor: graphStates.addingNodes? '#00ff00': '#666' }}>Add Nodes</button>
-        <button className= "graphButton" onClick={toggleRemoveNodes} style={{backgroundColor: graphStates.removingNodes? '#00ff00': '#666',marginBottom: '20px'}}>Remove Nodes</button>
-        
+        <button className= "graphButton" onClick={toggleShowId} style={{backgroundColor: graphStates.showId? '#00ff00': '#666'}}>Show Node ID</button>
+        <button className= "graphButton" onClick={toggleAddNodes} style={{backgroundColor: graphStates.addingNodes? '#00ff00': '#666' }}>Add Nodes or Edges</button>
+        <button className= "graphButton" onClick={toggleRemoveNodes} style={{backgroundColor: graphStates.removingNodes? '#00ff00': '#666',marginBottom: '20px'}}>Remove Nodes or Edges</button>
         
         <label for="nextWeight">Weight of the next edge: </label>
         <input type="number" id="nextWeight" onChange={changeNextWeight} min="1" max="10" style={{width: '30%' , marginBottom: '10px'}}></input>
+        <label for="source"><br/>Source: </label>
+        <input type="number" id="source" onChange={changeSource} min="1" max="10" style={{width: '30%' , marginBottom: '10px'}}></input>
+        <label for="destination"><br/>Destination: </label>
+        <input type="number" id="destination" onChange={changeDestination} min="1" max="10" style={{width: '30%' , marginBottom: '10px'}}></input>
 
-        <label for="algorithmType">Choose an Algorithm: </label>
-          <select name="algorithmType" id="algorithmType" onChange={changeAlgorithm}>
+        <label for="algorithmType"><br/>Choose an Algorithm: </label>
+            <select name="algorithmType" id="algorithmType" onChange={changeAlgorithm}>
               <option value={1}>BFS Algorithm</option>
               <option value={2}>DFS Algorithm</option>
               <option value={3}>Dijkstra</option>
 
-          </select>
+            </select>
         <button className= "graphButton" onClick={toggleVisualization} style={{backgroundColor: graphStates.visualize? '#00ff00': '#666', marginTop: '20px' }}>VISUALIZE</button>
         
         {graphStates.visualize?
@@ -400,7 +562,13 @@ function pathfinding(){
         
       </div>
       <div className="graphContainer">
+        
         <Graph data={graphData} graphStates={graphStates} onNodeClick = {handleNodeClick}/>
+        <div>
+          {graphStates.visualize? <>{InfoCard}</>: <></>}
+          {InfoCard2}
+        </div>
+        
 
       </div>
       

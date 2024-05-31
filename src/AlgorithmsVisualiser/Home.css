@@ -9,6 +9,8 @@
   .content {
     display: flex;
     flex: 1;
+    background-color: black;
+    color: white;
   }
   
   .main {
@@ -31,5 +33,10 @@
   
   button {
     margin-bottom: 10px;
+    
+  }
+  #sidePanel{
+    height: 10%;
+    width: 10%;
   }
   

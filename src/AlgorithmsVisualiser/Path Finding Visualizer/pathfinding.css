@@ -1,6 +1,7 @@
 .Container{
     display: flex;
     height: calc(100vh);
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
 
@@ -36,10 +37,98 @@
 }
 
 
+/* infocard */
+.InfoMain3{
+    display: block;
+    position: absolute;
+    background-color: #000000;
+    top: 10px;
+    right: 10px;
+    width: 15%;
+    height: 30%;
+    border-radius: 5px;
+    box-shadow:-1px 1px 1px 1px  rgba(255, 255, 255, 1);
+    
+}
 
+
+.InfoMain2{
+    display: block;
+    position: absolute;
+    background-color: #000000;
+    top: calc(35vh);
+    right: 10px;
+    width: 15%;
+    height: 30%;
+    border-radius: 5px;
+    box-shadow:-1px 1px 1px 1px  rgba(255, 255, 255, 1);
+    
+}
+
+.InfoColor2{
+    
+    margin-left: 10px;
+    width: 10%;
+    height: 3%;
+    border-radius: 2px;
+    
+}
+
+.InfoHeader2{
+    color: white;
+    font-size: small;
+    margin-left: 5px;
+
+}
+.InfoLabel2{
+    color: white;
+    font-size: xx-small;
+    margin-left: 5px;
+}
+
+#ic1s{
+    
+    margin-top: 10px;
+    display: block;
+    background-color: #0000ff;
+}
+
+#ic2s{
+    
+    display: block;
+    background-color: #ff0000;
+}
+#ic3s{
+    
+    display: block;
+    background-color: #00ff00;
+}
+#ic4s{
+    
+    display: block;
+    background-color: #ffffff;
+}
 
 .tooltip {
-    
+    position: absolute;
+    display: block;
+    width: auto;
+    height: auto;
+    color: #fff;
+    padding: 5px;
+    font: 12px sans-serif;
+    background: rgb(30, 30, 30);
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.instruction {
+    position: absolute;
+    bottom: 10px;
+    display: block;
+
     width: auto;
     height: auto;
     color: #fff;

@@ -22,7 +22,7 @@ const Graph = ({ data, graphStates , onNodeClick}) => {
       simulationRef.current = d3.forceSimulation()
         .force('link', d3.forceLink().id(d => d.id))
         .force('charge', d3.forceManyBody().strength(-600))
-        .force('center', d3.forceCenter(400, 240));
+        .force('center', d3.forceCenter(350, 240));
     }
 
     
@@ -30,13 +30,13 @@ const Graph = ({ data, graphStates , onNodeClick}) => {
     const simulation = simulationRef.current;
 
     
-    if(graphStates.visualize){
-      simulation.force('center', d3.forceCenter(300, 240));
-    }
-    else{
-      simulation.force('center', d3.forceCenter(400, 240));
+    // if(graphStates.visualize){
+    //   simulation.force('center', d3.forceCenter(350, 240));
+    // }
+    // else{
+    //   simulation.force('center', d3.forceCenter(400, 240));
 
-    }
+    // }
 
     // Clear previous content
     svg.selectAll('*').remove();
@@ -67,9 +67,25 @@ const Graph = ({ data, graphStates , onNodeClick}) => {
     .text(d => d.weight);
 
 
+    const nodeLabels = svg.append("g")
+    .selectAll("text")
+    .data(data.nodes)
+    .enter().append("text")
+    .attr("font-size", "12px")
+    .attr("fill", "white")
+    .text(d => d.id);
+    
+    nodeLabels.style("fill" , "#00ff00")
+
+
     //STATES
     if(!graphStates.showWeights){
         linkLabels.style("display", "none")
+    }
+
+    if(!graphStates.showId){
+        nodeLabels.style("display", "none")
+
     }
     
 
@@ -118,6 +134,10 @@ const Graph = ({ data, graphStates , onNodeClick}) => {
       linkLabels
         .attr("x", d => (d.source.x + d.target.x) / 2)
         .attr("y", d => (d.source.y + d.target.y) / 2);
+
+      nodeLabels
+        .attr("x", d => d.x-10)
+        .attr("y", d =>  d.y-10);
 
     
     });
